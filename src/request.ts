@@ -1,13 +1,17 @@
 ///////////////////////////////// request definitions ////////////////////////
-type MakeRequest<ID extends string, PAYLOAD, RESPONSE> = {
+type MakeRequestUtil<ID extends string, PAYLOAD, RESPONSE> = {
   id: ID;
   payload: PAYLOAD;
   response: RESPONSE;
 };
 
 type RequestUnion =
-  | MakeRequest<"request-footer", { ts: number }, { homeUrl: string }>
-  | MakeRequest<"request-header", { noCache: boolean }, { logoUrl: string }>;
+  | MakeRequestUtil<"request-footer", { ts: number }, { homeUrl: string }>
+  | MakeRequestUtil<
+      "request-header",
+      { noCache: boolean },
+      { logoUrl: string }
+    >;
 
 ///////////////////////////////// util types /////////////////////////////////
 type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<
@@ -17,18 +21,18 @@ type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<
   ? T
   : never;
 
-type MapRequests = {
+type MapRequstsType = {
   [V in RequestUnion["id"]]: (
     payload: DiscriminateUnion<RequestUnion, "id", V>["payload"]
   ) => Promise<DiscriminateUnion<RequestUnion, "id", V>["response"]>;
 };
 
 ///////////////////////////////// client implementation //////////////////////
-function request<T extends RequestUnion, K extends T["id"]>(
+function requestA<T extends RequestUnion, K extends T["id"]>(
   id: K,
   payload: DiscriminateUnion<T, "id", K>["payload"]
 ): Promise<DiscriminateUnion<T, "id", K>["response"]> {
-  const map: MapRequests = {
+  const map: MapRequstsType = {
     "request-footer": (payload) =>
       Promise.resolve({ homeUrl: JSON.stringify(payload) }),
     "request-header": (payload) =>
@@ -40,10 +44,10 @@ function request<T extends RequestUnion, K extends T["id"]>(
 
 (async () => {
   const headerPayload = { noCache: true };
-  const headerResponse = await request("request-header", headerPayload);
+  const headerResponse = await requestA("request-header", headerPayload);
   console.log({ headerPayload, headerResponse });
 
   const footerPayload = { ts: 10 };
-  const footerResponse = await request("request-footer", footerPayload);
+  const footerResponse = await requestA("request-footer", footerPayload);
   console.log({ footerPayload, footerResponse });
 })();
