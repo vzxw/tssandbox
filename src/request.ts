@@ -1,15 +1,13 @@
 ///////////////////////////////// request definitions ////////////////////////
-interface RequestFooter {
-  id: "request-footer";
-  payload: { ts: number };
-  response: { homeUrl: string };
-}
-interface RequestHeader {
-  id: "request-header";
-  payload: { noCache: boolean };
-  response: { logoUrl: string };
-}
-type RequestUnion = RequestFooter | RequestHeader;
+type MakeRequest<ID extends string, PAYLOAD, RESPONSE> = {
+  id: ID;
+  payload: PAYLOAD;
+  response: RESPONSE;
+};
+
+type RequestUnion =
+  | MakeRequest<"request-footer", { ts: number }, { homeUrl: string }>
+  | MakeRequest<"request-header", { noCache: boolean }, { logoUrl: string }>;
 
 ///////////////////////////////// util types /////////////////////////////////
 export type DiscriminateUnion<
@@ -26,8 +24,8 @@ type MapRequests = {
 ///////////////////////////////// client implementation //////////////////////
 function request<T extends RequestUnion, K extends T["id"]>(
   id: K,
-  payload: DiscriminateUnion<T, "id", T["id"]>["payload"]
-): Promise<DiscriminateUnion<T, "id", T["id"]>["response"]> {
+  payload: DiscriminateUnion<T, "id", K>["payload"]
+): Promise<DiscriminateUnion<T, "id", K>["response"]> {
   const map: MapRequests = {
     "request-footer": (payload) =>
       Promise.resolve({ homeUrl: JSON.stringify(payload) }),
@@ -35,16 +33,15 @@ function request<T extends RequestUnion, K extends T["id"]>(
       Promise.resolve({ logoUrl: JSON.stringify(payload) }),
   };
 
-  const handler = map[id];
-  return handler(payload);
+  return map[id](payload as never);
 }
 
 (async () => {
-  const headerPayload = { ts: 10 };
+  const headerPayload = { noCache: true };
   const headerResponse = await request("request-header", headerPayload);
   console.log({ headerPayload, headerResponse });
 
   const footerPayload = { ts: 10 };
-  const footerResponse = await request("request-footer", headerPayload);
+  const footerResponse = await request("request-footer", footerPayload);
   console.log({ footerPayload, footerResponse });
 })();
