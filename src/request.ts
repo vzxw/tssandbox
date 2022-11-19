@@ -33,7 +33,7 @@ function request<T extends RequestUnion, K extends T["id"]>(
       Promise.resolve({ logoUrl: JSON.stringify(payload) }),
   };
 
-  return map[id](payload as never);
+  return map[id](payload as never); // hack
 }
 
 (async () => {
