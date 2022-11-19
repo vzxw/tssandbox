@@ -10,11 +10,13 @@ type RequestUnion =
   | MakeRequest<"request-header", { noCache: boolean }, { logoUrl: string }>;
 
 ///////////////////////////////// util types /////////////////////////////////
-export type DiscriminateUnion<
-  T,
-  K extends keyof T,
-  V extends T[K]
-> = T extends Record<K, V> ? T : never;
+type DiscriminateUnion<T, K extends keyof T, V extends T[K]> = T extends Record<
+  K,
+  V
+>
+  ? T
+  : never;
+
 type MapRequests = {
   [V in RequestUnion["id"]]: (
     payload: DiscriminateUnion<RequestUnion, "id", V>["payload"]
