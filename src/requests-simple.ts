@@ -4,12 +4,7 @@ interface Requests {
   getHeader: RequestHandler<{ noCache: boolean }, { title: string }>;
 }
 
-type ExtractFirstParameter<T> = T extends (
-  first: infer F,
-  ...args: any[]
-) => any
-  ? F
-  : never;
+type ExtractFirstParameter<T> = T extends (first: infer F) => any ? F : never;
 
 type MapRequests = {
   [K in keyof Requests]: (
