@@ -17,9 +17,10 @@ function request<K extends keyof Requests>(
   payload: ExtractFirstParameter<Requests[K]>
 ): ReturnType<Requests[K]> {
   const map: MapRequests = {
-    getFooter: (payload) => Promise.resolve({ logo: payload.ts.toString() }),
-    getHeader: (payload) =>
-      Promise.resolve({ title: payload.noCache ? "" : "cached" }),
+    getFooter: (currentPayload) =>
+      Promise.resolve({ logo: currentPayload.ts.toString() }),
+    getHeader: (currentPayload) =>
+      Promise.resolve({ title: currentPayload.noCache ? "" : "cached" }),
   };
 
   return map[key](payload);
